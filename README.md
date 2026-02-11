@@ -2,8 +2,6 @@
 
 A privacy-focused translation web app powered entirely by local AI models via [Ollama](https://ollama.com). No text ever leaves your machine or network.
 
-![LocalLingo screenshot](https://github.com/user-attachments/assets/placeholder)
-
 ## Features
 
 - **100% private** — all inference runs locally; no API keys, no cloud services
@@ -31,7 +29,7 @@ Browser → Next.js API routes → Ollama (localhost:11434)
 - At least one language model pulled in Ollama (a general-purpose instruction model works best):
 
 ```bash
-ollama pull llama3.2
+ollama pull translategemma:4b
 # or any other model, e.g. mistral, gemma3, qwen2.5
 ```
 
