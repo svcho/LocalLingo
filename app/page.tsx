@@ -1,65 +1,160 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect, useCallback } from "react";
+import { TranslationPane } from "@/components/TranslationPane";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useSettings } from "@/context/SettingsContext";
+import { DEBOUNCE_DELAY } from "@/lib/constants";
+import { LANGUAGES } from "@/lib/languages";
+
+const DEFAULT_SOURCE_LANG = "English";
+const DEFAULT_TARGET_LANG = "Spanish";
+
+export default function HomePage() {
+  const { connectionStatus } = useSettings();
+  const [sourceText, setSourceText] = useState("");
+  const [sourceLang, setSourceLang] = useState(DEFAULT_SOURCE_LANG);
+  const [targetLang, setTargetLang] = useState(DEFAULT_TARGET_LANG);
+
+  const { output, isTranslating, error, translate, abort, clearOutput } =
+    useTranslation();
+
+  const debouncedSource = useDebounce(sourceText, DEBOUNCE_DELAY);
+
+  // Auto-translate on debounced source text change
+  useEffect(() => {
+    if (debouncedSource.trim()) {
+      translate({ text: debouncedSource, sourceLang, targetLang });
+    } else {
+      abort();
+      clearOutput();
+    }
+    // We intentionally exclude translate/abort/clearOutput from deps to avoid loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSource, sourceLang, targetLang]);
+
+  const handleSourceChange = useCallback(
+    (text: string) => {
+      setSourceText(text);
+      if (!text.trim()) {
+        abort();
+        clearOutput();
+      }
+    },
+    [abort, clearOutput]
+  );
+
+  const handleTranslateClick = useCallback(() => {
+    if (sourceText.trim()) {
+      translate({ text: sourceText, sourceLang, targetLang });
+    }
+  }, [sourceText, sourceLang, targetLang, translate]);
+
+  const handleSwap = useCallback(() => {
+    setSourceLang(targetLang);
+    setTargetLang(sourceLang);
+    setSourceText(output || sourceText);
+    abort();
+    clearOutput();
+  }, [sourceLang, targetLang, output, sourceText, abort, clearOutput]);
+
+  const isDisconnected = connectionStatus === "disconnected";
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex-1 flex flex-col p-4 gap-4 max-w-7xl mx-auto w-full">
+      {/* Disconnected banner */}
+      {isDisconnected && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
+          Ollama is not reachable. Click the status pill in the header to configure your connection.
+        </div>
+      )}
+
+      {/* Translation area */}
+      <div className="flex flex-col md:flex-row gap-4 flex-1">
+        {/* Source pane */}
+        <TranslationPane
+          mode="source"
+          language={sourceLang}
+          onLanguageChange={setSourceLang}
+          text={sourceText}
+          onTextChange={handleSourceChange}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Center controls */}
+        <div className="flex md:flex-col items-center justify-center gap-3 md:py-4">
+          {/* Swap button */}
+          <button
+            onClick={handleSwap}
+            className="flex items-center justify-center w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors shadow-sm"
+            aria-label="Swap languages"
+            title="Swap languages"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <svg
+              className="w-4 h-4 text-gray-500 md:rotate-90"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+              />
+            </svg>
+          </button>
+
+          {/* Translate button */}
+          <button
+            onClick={handleTranslateClick}
+            disabled={!sourceText.trim() || isDisconnected || isTranslating}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm whitespace-nowrap"
           >
-            Documentation
-          </a>
+            {isTranslating ? (
+              <>
+                <svg
+                  className="w-3.5 h-3.5 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
+                </svg>
+                Translating
+              </>
+            ) : (
+              "Translate"
+            )}
+          </button>
         </div>
-      </main>
+
+        {/* Target pane */}
+        <TranslationPane
+          mode="target"
+          language={targetLang}
+          onLanguageChange={setTargetLang}
+          text={output}
+          isLoading={isTranslating}
+          error={error}
+        />
+      </div>
+
+      {/* Language count hint */}
+      <p className="text-xs text-gray-400 text-center">
+        {LANGUAGES.length} languages supported &middot; All inference runs locally via Ollama
+      </p>
     </div>
   );
 }
