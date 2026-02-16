@@ -1,110 +1,111 @@
 # LocalLingo
 
-A privacy-focused translation web app powered entirely by local AI models via [Ollama](https://ollama.com). No text ever leaves your machine or network.
+Local-first translation and spellchecking powered by [Ollama](https://ollama.com).
+Your text is processed by your own local model and does not require cloud APIs or API keys.
 
-## Features
+## Highlights
 
-- **100% private** — all inference runs locally; no API keys, no cloud services
-- **Streaming output** — translations appear token-by-token as the model generates them
-- **Auto-translate** — starts translating automatically after you stop typing (800 ms debounce)
-- **20 languages** — English, Spanish, French, German, Italian, Portuguese, Chinese (Simplified & Traditional), Japanese, Korean, Russian, Arabic, Hindi, Dutch, Swedish, Polish, Turkish, Vietnamese, Thai, Indonesian
-- **Swap languages** — exchange source and target languages (and their text) in one click
-- **Settings modal** — configure the Ollama URL, test the connection, and pick a model; settings persist across sessions
-- **Connection status pill** — live indicator showing the connected model or a disconnected state
-- **Responsive** — split-pane layout on desktop, stacked on mobile
+- Private by default: inference runs against your configured Ollama instance
+- Two focused workflows in one UI: `Translate` for bilingual translation and `Spellcheck` for spelling, grammar, and punctuation correction
+- Streaming model output for responsive feedback
+- Auto-run after typing pause (800 ms debounce), plus manual action buttons
+- Model + endpoint settings persisted in `localStorage`
+- Works on desktop and mobile layouts
 
-## How it works
+## Requirements
 
-The browser talks to a local Next.js API server (two thin proxy routes) rather than calling Ollama directly. This avoids any CORS configuration on Ollama's side while keeping all data on your machine.
+- Node.js 18+
+- pnpm
+- Ollama installed and running (default: `http://localhost:11434`)
+- At least one local model pulled in Ollama
 
-```
-Browser → Next.js API routes → Ollama (localhost:11434)
-```
-
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) 18+
-- [pnpm](https://pnpm.io/) (`npm install -g pnpm`)
-- [Ollama](https://ollama.com/download) installed and running locally
-- At least one language model pulled in Ollama (a general-purpose instruction model works best):
+Example:
 
 ```bash
 ollama pull translategemma:4b
-# or any other model, e.g. mistral, gemma3, qwen2.5
+# or mistral / gemma3 / qwen2.5 etc.
 ```
 
-## Getting started
+## Quick Start
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/svcho/LocalLingo.git
 cd LocalLingo
-
-# 2. Install dependencies
 pnpm install
-
-# 3. Start the development server
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open `http://localhost:3000`.
 
-The status pill in the top-right corner will turn green once LocalLingo connects to Ollama and a model is detected.
+## How To Use
 
-## Production build
+### Translate Mode
+
+1. Select source and target languages.
+2. Type or paste text in the left pane.
+3. Translation streams into the right pane automatically after a short pause.
+4. Optional controls: `Translate` to run immediately, `Swap` to swap languages and reuse output, and `Copy` to copy translated text.
+
+### Spellcheck Mode
+
+1. Switch to `Spellcheck`.
+2. Paste or type text in the input pane.
+3. Corrected text appears in the output pane (auto-check + manual `Spellcheck` button).
+4. Optional controls: `Replace Input` to continue editing from corrected text and `Copy` to copy corrected text.
+
+## Privacy And Safety Notes
+
+- LocalLingo only sends text to your configured Ollama URL.
+- If you point to a remote Ollama host, privacy depends on that host/network.
+- Model outputs can be wrong or stylistically imperfect. Review important text before use.
+
+## Configuration
+
+Click the status pill in the header to open settings:
+
+- Set Ollama URL
+- Test connection
+- Choose the active model
+
+## Supported Translation Languages
+
+English, Spanish, French, German, Italian, Portuguese, Chinese (Simplified), Chinese (Traditional), Japanese, Korean, Russian, Arabic, Hindi, Dutch, Swedish, Polish, Turkish, Vietnamese, Thai, Indonesian.
+
+## Build And Run
 
 ```bash
 pnpm build
 pnpm start
 ```
 
-## Configuration
+## Tech Stack
 
-Click the status pill in the top-right corner to open the Settings panel where you can:
+- Next.js 16 (App Router)
+- React 19 + TypeScript 5
+- Tailwind CSS v4
+- Ollama local models
 
-- **Change the Ollama URL** — useful if Ollama is running on a different host or port (default: `http://localhost:11434`)
-- **Test the connection** — verifies Ollama is reachable before saving
-- **Select a model** — choose from any model you have pulled in Ollama
+## Project Structure
 
-Settings are persisted in `localStorage` and restored on next visit.
-
-## Tech stack
-
-| Layer | Technology |
-|-------|-----------|
-| Framework | [Next.js 16](https://nextjs.org) (App Router, Turbopack) |
-| Language | TypeScript 5 |
-| Styling | [Tailwind CSS v4](https://tailwindcss.com) |
-| State | React Context + `localStorage` |
-| AI backend | [Ollama](https://ollama.com) (local) |
-| Package manager | pnpm |
-
-## Project structure
-
-```
+```text
 app/
   api/ollama/
-    tags/route.ts       # Proxy: GET /api/tags → Ollama
-    generate/route.ts   # Proxy: POST /api/generate → Ollama (streaming)
+    tags/route.ts
+    generate/route.ts
   layout.tsx
   page.tsx
-  globals.css
 components/
-  Header.tsx            # App title + status pill
-  StatusPill.tsx        # Connection indicator (green/yellow/red)
-  SettingsModal.tsx     # URL input, connection test, model selector
-  TranslationPane.tsx   # Reusable source/target pane
-  LanguageSelector.tsx  # Language dropdown
-  CopyButton.tsx        # Clipboard copy with feedback
+  Header.tsx
+  SettingsModal.tsx
+  SpellcheckPane.tsx
+  TranslationPane.tsx
+  CopyButton.tsx
 context/
-  SettingsContext.tsx   # Global settings state
+  SettingsContext.tsx
 hooks/
-  useOllama.ts          # Connection health + model list
-  useTranslation.ts     # Streaming translation logic
-  useDebounce.ts        # Debounce hook
-lib/
-  constants.ts          # Default URL, debounce delay
-  languages.ts          # Supported language list
+  useOllamaGeneration.ts
+  useTranslation.ts
+  useSpellcheck.ts
 ```
 
 ## License

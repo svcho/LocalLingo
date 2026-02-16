@@ -5,7 +5,7 @@ import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "LocalLingo",
-  description: "Privacy-focused translation powered by local Ollama models",
+  description: "Privacy-focused translation and spellcheck powered by local Ollama models",
 };
 
 export default function RootLayout({

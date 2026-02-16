@@ -25,7 +25,7 @@ export function CopyButton({ text }: CopyButtonProps) {
       onClick={handleCopy}
       disabled={!text}
       className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-gray-600"
-      aria-label="Copy translation"
+      aria-label="Copy text"
     >
       {copied ? (
         <>

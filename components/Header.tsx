@@ -13,7 +13,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-gray-900">LocalLingo</span>
           <span className="text-xs text-gray-400 font-normal hidden sm:inline">
-            Private translation via Ollama
+            Private language tools via Ollama
           </span>
         </div>
         <StatusPill onClick={() => setSettingsOpen(true)} />
